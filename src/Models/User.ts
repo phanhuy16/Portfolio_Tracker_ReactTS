@@ -1,12 +1,15 @@
 export type UserProfileToken = {
-  userName: string;
   email: string;
-  lastName: string;
-  firstName: string;
-  token: string;
+  username: string;
+  accessToken: string;
+  refreshToken: string;
 }
 
 export type UserProfile = {
-  userName: string;
   email: string;
+  username: string;
 };
+
+export type RefreshToken = {
+  refreshToken: string;
+}

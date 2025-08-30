@@ -2,38 +2,50 @@ import {
   EyeInvisibleOutlined,
   EyeTwoTone,
   LockOutlined,
-  MailOutlined,
-  UserOutlined,
 } from "@ant-design/icons";
 import { Alert, Button, Card, Form, Input } from "antd";
-import { useState } from "react";
-import { useAuth } from "../../Context/useAuth";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { resetPasswordAPI } from "../../Services/AuthService";
+import { toast } from "react-toastify";
 
-type Props = {};
-
-type RegisterFormInputs = {
-  email: string;
-  username: string;
-  password: string;
+type ResetPasswordFormInputs = {
+  newPassword: string;
+  confirmPassword: string;
 };
 
-const RegisterPage = (props: Props) => {
+const ResetPasswordPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
-  const { registerUser } = useAuth();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
-  const onFinish = async (values: RegisterFormInputs) => {
+  const email = searchParams.get("email");
+  const token = searchParams.get("token");
+
+  useEffect(() => {
+    if (!email || !token) {
+      toast.error("Link reset không hợp lệ!");
+      navigate("/login");
+    }
+  }, [email, token, navigate]);
+
+  const onFinish = async (values: ResetPasswordFormInputs) => {
     setLoading(true);
     setError("");
 
     try {
-      await registerUser(values.email, values.username, values.password);
-    } catch (err: any) {
-      // Error will be handled in the registerUser function
-      // But we can set a fallback error here if needed
-      if (err.message) {
-        setError(err.message);
+      if (!email || !token) {
+        throw new Error("Thông tin reset không hợp lệ");
       }
+
+      const response = await resetPasswordAPI(email, token, values.newPassword);
+      if (response) {
+        toast.success("Đổi mật khẩu thành công!");
+        navigate("/login");
+      }
+    } catch (err: any) {
+      setError(err.message || "Có lỗi xảy ra khi đổi mật khẩu.");
     } finally {
       setLoading(false);
     }
@@ -41,29 +53,30 @@ const RegisterPage = (props: Props) => {
 
   const validatePassword = (_: any, value: string) => {
     if (!value) {
-      return Promise.reject(new Error("Vui lòng nhập mật khẩu!"));
+      return Promise.reject(new Error("Vui lòng nhập mật khẩu mới!"));
     }
 
     const errors = [];
-
-    if (value.length < 6) {
-      errors.push("Mật khẩu phải có ít nhất 6 ký tự");
-    }
-
-    if (!/[A-Z]/.test(value)) {
+    if (value.length < 6) errors.push("Mật khẩu phải có ít nhất 6 ký tự");
+    if (!/[A-Z]/.test(value))
       errors.push("Mật khẩu phải chứa ít nhất 1 chữ cái viết hoa");
-    }
-
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value)) {
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value))
       errors.push("Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt");
-    }
 
     if (errors.length > 0) {
       return Promise.reject(new Error(errors.join(", ")));
     }
-
     return Promise.resolve();
   };
+
+  const validateConfirmPassword = ({ getFieldValue }: any) => ({
+    validator(_: any, value: string) {
+      if (!value || getFieldValue("newPassword") === value) {
+        return Promise.resolve();
+      }
+      return Promise.reject(new Error("Mật khẩu xác nhận không khớp!"));
+    },
+  });
 
   return (
     <div
@@ -95,7 +108,7 @@ const RegisterPage = (props: Props) => {
               marginBottom: "8px",
             }}
           >
-            Đăng Ký
+            Đổi Mật Khẩu
           </h2>
           <p
             style={{
@@ -104,7 +117,7 @@ const RegisterPage = (props: Props) => {
               fontSize: "14px",
             }}
           >
-            Tạo tài khoản mới để bắt đầu!
+            Nhập mật khẩu mới của bạn
           </p>
         </div>
 
@@ -124,63 +137,54 @@ const RegisterPage = (props: Props) => {
         )}
 
         <Form
-          name="register"
+          name="resetPassword"
           onFinish={onFinish}
           layout="vertical"
           variant="underlined"
+          autoComplete="off"
         >
           <Form.Item
             label={
-              <span style={{ color: "#374151", fontWeight: "500" }}>Email</span>
-            }
-            name="email"
-            rules={[
-              { required: true, message: "Vui lòng nhập email!" },
-              { type: "email", message: "Email không hợp lệ!" },
-            ]}
-          >
-            <Input
-              prefix={<MailOutlined style={{ color: "#9ca3af" }} />}
-              placeholder="Nhập email"
-              autoComplete="email"
-            />
-          </Form.Item>
-          <Form.Item
-            label={
               <span style={{ color: "#374151", fontWeight: "500" }}>
-                Tên đăng nhập
+                Mật khẩu mới
               </span>
             }
-            name="username"
-            rules={[
-              { required: true, message: "Vui lòng nhập tên đăng nhập!" },
-              { min: 3, message: "Tên đăng nhập phải có ít nhất 3 ký tự!" },
-            ]}
-          >
-            <Input
-              prefix={<UserOutlined style={{ color: "#9ca3af" }} />}
-              placeholder="Nhập tên đăng nhập"
-              autoComplete="username"
-            />
-          </Form.Item>
-          <Form.Item
-            label={
-              <span style={{ color: "#374151", fontWeight: "500" }}>
-                Mật khẩu
-              </span>
-            }
-            name="password"
+            name="newPassword"
             rules={[{ validator: validatePassword }]}
           >
             <Input.Password
               prefix={<LockOutlined style={{ color: "#9ca3af" }} />}
-              placeholder="Nhập mật khẩu"
+              placeholder="Nhập mật khẩu mới"
               autoComplete="new-password"
               iconRender={(visible) =>
                 visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
               }
             />
           </Form.Item>
+
+          <Form.Item
+            label={
+              <span style={{ color: "#374151", fontWeight: "500" }}>
+                Xác nhận mật khẩu
+              </span>
+            }
+            name="confirmPassword"
+            dependencies={["newPassword"]}
+            rules={[
+              { required: true, message: "Vui lòng xác nhận mật khẩu!" },
+              validateConfirmPassword,
+            ]}
+          >
+            <Input.Password
+              prefix={<LockOutlined style={{ color: "#9ca3af" }} />}
+              placeholder="Nhập lại mật khẩu mới"
+              autoComplete="new-password"
+              iconRender={(visible) =>
+                visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
+              }
+            />
+          </Form.Item>
+
           <Form.Item style={{ marginBottom: "24px" }}>
             <Button
               type="primary"
@@ -194,32 +198,13 @@ const RegisterPage = (props: Props) => {
                 boxShadow: "0 4px 12px rgba(102, 126, 234, 0.4)",
               }}
             >
-              {loading ? "Đang đăng ký..." : "Đăng Ký"}
+              {loading ? "Đang đổi..." : "Đổi Mật Khẩu"}
             </Button>
           </Form.Item>
-          <div
-            style={{
-              textAlign: "center",
-              color: "#6b7280",
-              fontSize: "14px",
-            }}
-          >
-            Đã có tài khoản?{" "}
-            <a
-              href="/login"
-              style={{
-                color: "#667eea",
-                textDecoration: "none",
-                fontWeight: "500",
-              }}
-            >
-              Đăng nhập ngay
-            </a>
-          </div>
         </Form>
       </Card>
     </div>
   );
 };
 
-export default RegisterPage;
+export default ResetPasswordPage;

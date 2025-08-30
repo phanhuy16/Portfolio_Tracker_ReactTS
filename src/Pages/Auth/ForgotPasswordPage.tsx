@@ -1,69 +1,82 @@
-import {
-  EyeInvisibleOutlined,
-  EyeTwoTone,
-  LockOutlined,
-  MailOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
+import { MailOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { Alert, Button, Card, Form, Input } from "antd";
 import { useState } from "react";
-import { useAuth } from "../../Context/useAuth";
+import { useNavigate } from "react-router-dom";
+import { forgotPasswordAPI } from "../../Services/AuthService";
+import { toast } from "react-toastify";
 
-type Props = {};
-
-type RegisterFormInputs = {
+type ForgotPasswordFormInputs = {
   email: string;
-  username: string;
-  password: string;
 };
 
-const RegisterPage = (props: Props) => {
+const ForgotPasswordPage = () => {
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string>("");
-  const { registerUser } = useAuth();
+  const navigate = useNavigate();
 
-  const onFinish = async (values: RegisterFormInputs) => {
+  const onFinish = async (values: ForgotPasswordFormInputs) => {
     setLoading(true);
     setError("");
 
     try {
-      await registerUser(values.email, values.username, values.password);
-    } catch (err: any) {
-      // Error will be handled in the registerUser function
-      // But we can set a fallback error here if needed
-      if (err.message) {
-        setError(err.message);
+      const response = await forgotPasswordAPI(values.email);
+      if (response) {
+        setSuccess(true);
+        toast.success("Email hướng dẫn đã được gửi!");
       }
+    } catch (err: any) {
+      setError(err.message || "Có lỗi xảy ra khi gửi email.");
     } finally {
       setLoading(false);
     }
   };
 
-  const validatePassword = (_: any, value: string) => {
-    if (!value) {
-      return Promise.reject(new Error("Vui lòng nhập mật khẩu!"));
-    }
-
-    const errors = [];
-
-    if (value.length < 6) {
-      errors.push("Mật khẩu phải có ít nhất 6 ký tự");
-    }
-
-    if (!/[A-Z]/.test(value)) {
-      errors.push("Mật khẩu phải chứa ít nhất 1 chữ cái viết hoa");
-    }
-
-    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value)) {
-      errors.push("Mật khẩu phải chứa ít nhất 1 ký tự đặc biệt");
-    }
-
-    if (errors.length > 0) {
-      return Promise.reject(new Error(errors.join(", ")));
-    }
-
-    return Promise.resolve();
-  };
+  if (success) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "20px",
+        }}
+      >
+        <Card
+          style={{
+            width: 400,
+            borderRadius: "16px",
+            boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
+            border: "none",
+            background: "rgba(255, 255, 255, 0.95)",
+            backdropFilter: "blur(10px)",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ marginBottom: "32px" }}>
+            <h2 style={{ color: "#1f2937", marginBottom: "16px" }}>
+              Email Đã Được Gửi!
+            </h2>
+            <p style={{ color: "#6b7280", marginBottom: "24px" }}>
+              Chúng tôi đã gửi link reset mật khẩu đến email của bạn. Vui lòng
+              kiểm tra hộp thư và làm theo hướng dẫn.
+            </p>
+            <Button
+              type="primary"
+              onClick={() => navigate("/login")}
+              style={{
+                fontSize: "16px",
+                fontWeight: "500",
+              }}
+            >
+              Quay Về Đăng Nhập
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -95,7 +108,7 @@ const RegisterPage = (props: Props) => {
               marginBottom: "8px",
             }}
           >
-            Đăng Ký
+            Quên Mật Khẩu
           </h2>
           <p
             style={{
@@ -104,7 +117,7 @@ const RegisterPage = (props: Props) => {
               fontSize: "14px",
             }}
           >
-            Tạo tài khoản mới để bắt đầu!
+            Nhập email để nhận link reset mật khẩu
           </p>
         </div>
 
@@ -124,7 +137,7 @@ const RegisterPage = (props: Props) => {
         )}
 
         <Form
-          name="register"
+          name="forgotPassword"
           onFinish={onFinish}
           layout="vertical"
           variant="underlined"
@@ -141,46 +154,10 @@ const RegisterPage = (props: Props) => {
           >
             <Input
               prefix={<MailOutlined style={{ color: "#9ca3af" }} />}
-              placeholder="Nhập email"
-              autoComplete="email"
+              placeholder="Nhập email của bạn"
             />
           </Form.Item>
-          <Form.Item
-            label={
-              <span style={{ color: "#374151", fontWeight: "500" }}>
-                Tên đăng nhập
-              </span>
-            }
-            name="username"
-            rules={[
-              { required: true, message: "Vui lòng nhập tên đăng nhập!" },
-              { min: 3, message: "Tên đăng nhập phải có ít nhất 3 ký tự!" },
-            ]}
-          >
-            <Input
-              prefix={<UserOutlined style={{ color: "#9ca3af" }} />}
-              placeholder="Nhập tên đăng nhập"
-              autoComplete="username"
-            />
-          </Form.Item>
-          <Form.Item
-            label={
-              <span style={{ color: "#374151", fontWeight: "500" }}>
-                Mật khẩu
-              </span>
-            }
-            name="password"
-            rules={[{ validator: validatePassword }]}
-          >
-            <Input.Password
-              prefix={<LockOutlined style={{ color: "#9ca3af" }} />}
-              placeholder="Nhập mật khẩu"
-              autoComplete="new-password"
-              iconRender={(visible) =>
-                visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
-              }
-            />
-          </Form.Item>
+
           <Form.Item style={{ marginBottom: "24px" }}>
             <Button
               type="primary"
@@ -194,9 +171,10 @@ const RegisterPage = (props: Props) => {
                 boxShadow: "0 4px 12px rgba(102, 126, 234, 0.4)",
               }}
             >
-              {loading ? "Đang đăng ký..." : "Đăng Ký"}
+              {loading ? "Đang gửi..." : "Gửi Link Reset"}
             </Button>
           </Form.Item>
+
           <div
             style={{
               textAlign: "center",
@@ -204,17 +182,19 @@ const RegisterPage = (props: Props) => {
               fontSize: "14px",
             }}
           >
-            Đã có tài khoản?{" "}
-            <a
-              href="/login"
+            <Button
+              type="link"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => navigate("/login")}
               style={{
                 color: "#667eea",
                 textDecoration: "none",
                 fontWeight: "500",
+                padding: 0,
               }}
             >
-              Đăng nhập ngay
-            </a>
+              Quay về đăng nhập
+            </Button>
           </div>
         </Form>
       </Card>
@@ -222,4 +202,4 @@ const RegisterPage = (props: Props) => {
   );
 };
 
-export default RegisterPage;
+export default ForgotPasswordPage;

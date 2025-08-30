@@ -1,23 +1,27 @@
-import { useNavigate } from "react-router-dom";
-import { UserProfile } from "../Models/User";
-import React, { createContext, useEffect, useState } from "react";
-import { registerAPI, loginAPI } from "../Services/AuthService";
-import { toast } from "react-toastify";
 import axios from "axios";
+import React, { createContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { UserProfile } from "../Models/User";
+import { loginAPI, registerAPI, revokeTokenAPI } from "../Services/AuthService";
 
 type UserContextType = {
   user: UserProfile | null;
   token: string | null;
+  refreshToken: string | null;
   registerUser: (
-    username: string,
     email: string,
-    password: string,
-    firstName: string,
-    lastName: string
+    username: string,
+    password: string
   ) => Promise<void>;
   loginUser: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isLoggedIn: () => boolean;
+  updateTokens: (
+    newToken: string,
+    newRefreshToken: string,
+    userData?: UserProfile
+  ) => void;
 };
 
 type Props = { children: React.ReactNode };
@@ -27,15 +31,42 @@ const UserContext = createContext<UserContextType>({} as UserContextType);
 export const UserProvider = ({ children }: Props) => {
   const navigate = useNavigate();
   const [token, setToken] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isReady, setIsReady] = useState(false);
+
+  // Function để update tokens từ interceptor
+  const updateTokens = (
+    newToken: string,
+    newRefreshToken: string,
+    userData?: UserProfile
+  ) => {
+    setToken(newToken);
+    setRefreshToken(newRefreshToken);
+
+    if (userData) {
+      setUser(userData);
+    }
+  };
+
+  // Expose updateTokens function globally để interceptor có thể sử dụng
+  useEffect(() => {
+    (window as any).updateUserTokens = updateTokens;
+
+    return () => {
+      delete (window as any).updateUserTokens;
+    };
+  }, []);
 
   useEffect(() => {
     const user = localStorage.getItem("user");
     const token = localStorage.getItem("token");
-    if (user && token) {
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    if (user && token && refreshToken) {
       setUser(JSON.parse(user));
       setToken(token);
+      setRefreshToken(refreshToken);
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
     setIsReady(true);
@@ -43,28 +74,50 @@ export const UserProvider = ({ children }: Props) => {
 
   const registerUser = async (
     email: string,
-    password: string,
-    userName: string
+    username: string,
+    password: string
   ) => {
-    await registerAPI(email, password, userName)
+    await registerAPI(email, username, password)
       .then((res) => {
         if (res) {
-          localStorage.setItem("token", res.data.token);
+          // Store both token and refresh token
+          localStorage.setItem("token", res.data.accessToken);
+          localStorage.setItem("refreshToken", res.data.refreshToken);
 
           const userObj = {
-            userName: res?.data.userName,
+            username: res?.data.username,
             email: res?.data.email,
           };
 
           localStorage.setItem("user", JSON.stringify(userObj));
-          setToken(res?.data.token!);
+          setToken(res?.data.accessToken!);
+          setRefreshToken(res?.data.refreshToken!);
           setUser(userObj!);
-          toast.success("Registration successful!");
-          navigate("/dashboard");
+
+          // Set default authorization header
+          axios.defaults.headers.common[
+            "Authorization"
+          ] = `Bearer ${res.data.accessToken}`;
+
+          toast.success("Đăng ký thành công!");
+          navigate("/");
         }
       })
-      .catch((e) => {
-        toast.error("Registration failed!");
+      .catch((error: any) => {
+        let errorMessage = "Đăng ký thất bại!";
+
+        if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response?.data?.errors) {
+          // Handle validation errors
+          const errors = Object.values(error.response.data.errors).flat();
+          errorMessage = errors.join(", ");
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        toast.warn(errorMessage);
+        throw new Error(errorMessage);
       });
   };
 
@@ -72,16 +125,24 @@ export const UserProvider = ({ children }: Props) => {
     await loginAPI(email, password)
       .then((res) => {
         if (res) {
-          localStorage.setItem("token", res.data.token);
+          localStorage.setItem("token", res.data.accessToken);
+          localStorage.setItem("refreshToken", res.data.refreshToken);
 
           const userObj = {
-            userName: res?.data.userName,
+            username: res?.data.username,
             email: res?.data.email,
           };
 
           localStorage.setItem("user", JSON.stringify(userObj));
-          setToken(res?.data.token!);
+          setToken(res?.data.accessToken!);
+          setRefreshToken(res?.data.refreshToken!);
           setUser(userObj!);
+
+          // Set default authorization header
+          axios.defaults.headers.common[
+            "Authorization"
+          ] = `Bearer ${res.data.accessToken}`;
+
           toast.success("Login successful!");
           navigate("/");
         }
@@ -95,11 +156,28 @@ export const UserProvider = ({ children }: Props) => {
     return !!user;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Revoke token trước khi clear
+    if (refreshToken) {
+      try {
+        await revokeTokenAPI(refreshToken);
+      } catch (error) {
+        console.error("Error revoking token:", error);
+      }
+    }
+
+    // Clear sau khi revoke
     localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
+
+    // Clear axios default headers
+    delete axios.defaults.headers.common["Authorization"];
+
     setToken(null);
+    setRefreshToken(null);
     setUser(null);
+
     navigate("/login");
     toast.info("Logged out successfully!");
   };
@@ -109,10 +187,12 @@ export const UserProvider = ({ children }: Props) => {
       value={{
         user,
         token,
+        refreshToken,
         registerUser,
         loginUser,
         logout,
         isLoggedIn,
+        updateTokens,
       }}
     >
       {isReady ? children : null}

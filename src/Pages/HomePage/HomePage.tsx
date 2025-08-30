@@ -1,9 +1,17 @@
-import React from "react";
+import FeaturesSection from "../../Components/Homepage/FeaturesSection";
+import HeroSection from "../../Components/Homepage/HeroSection";
+import PricingSection from "../../Components/Homepage/PricingSection";
+import TestimonialsSection from "../../Components/Homepage/TestimonialsSection";
 
-type Props = {};
-
-function HomePage({}: Props) {
-  return <div>HomePage</div>;
-}
+const HomePage = () => {
+  return (
+    <div>
+      <HeroSection />
+      <FeaturesSection />
+      <PricingSection />
+      <TestimonialsSection />
+    </div>
+  );
+};
 
 export default HomePage;

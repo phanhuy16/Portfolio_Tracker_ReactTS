@@ -7,6 +7,7 @@ import {
 import { Alert, Button, Card, Checkbox, Form, Input } from "antd";
 import { useState } from "react";
 import { useAuth } from "../../Context/useAuth";
+import { useNavigate } from "react-router-dom";
 
 type Props = {};
 
@@ -18,7 +19,9 @@ type LoginFormInputs = {
 const LoginPage = (props: Props) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>("");
+
   const { loginUser } = useAuth();
+  const navigate = useNavigate();
 
   const onFinish = async (values: LoginFormInputs) => {
     setLoading(true);
@@ -108,6 +111,7 @@ const LoginPage = (props: Props) => {
           initialValues={{ remember: true }}
           onFinish={onFinish}
           layout="vertical"
+          variant="underlined"
         >
           <Form.Item
             label={
@@ -120,7 +124,11 @@ const LoginPage = (props: Props) => {
               { required: true, message: "Vui lòng nhập tên đăng nhập!" },
             ]}
           >
-            <Input prefix={<UserOutlined />} placeholder="Username" />
+            <Input
+              prefix={<UserOutlined />}
+              placeholder="Username"
+              autoComplete="username"
+            />
           </Form.Item>
           <Form.Item
             label={
@@ -136,6 +144,7 @@ const LoginPage = (props: Props) => {
                 visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />
               }
               prefix={<LockOutlined />}
+              autoComplete="current-password"
               placeholder="Password"
             />
           </Form.Item>
@@ -154,8 +163,12 @@ const LoginPage = (props: Props) => {
                 </Checkbox>
               </Form.Item>
               <a
-                href="/forgot-password"
-                style={{ color: "#667eea", textDecoration: "none" }}
+                onClick={() => navigate("/forgot-password")}
+                style={{
+                  color: "#667eea",
+                  textDecoration: "none",
+                  cursor: "pointer",
+                }}
               >
                 Quên mật khẩu?
               </a>
