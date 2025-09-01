@@ -16,7 +16,7 @@ import {
   ClockCircleOutlined,
   BulbOutlined,
 } from "@ant-design/icons";
-import { StockService } from "../../../Services/StockService";
+import { StockService } from "../../Services/StockService";
 
 const { Title, Text } = Typography;
 const { Option } = Select;

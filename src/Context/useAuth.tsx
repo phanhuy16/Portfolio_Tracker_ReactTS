@@ -35,7 +35,7 @@ export const UserProvider = ({ children }: Props) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isReady, setIsReady] = useState(false);
 
-  // Function để update tokens từ interceptor
+  // Function to update tokens from interceptor
   const updateTokens = (
     newToken: string,
     newRefreshToken: string,
@@ -49,7 +49,7 @@ export const UserProvider = ({ children }: Props) => {
     }
   };
 
-  // Expose updateTokens function globally để interceptor có thể sử dụng
+  // Expose updateTokens function globally for interceptor to use
   useEffect(() => {
     (window as any).updateUserTokens = updateTokens;
 
@@ -59,15 +59,15 @@ export const UserProvider = ({ children }: Props) => {
   }, []);
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
-    const refreshToken = localStorage.getItem("refreshToken");
+    const storedUser = localStorage.getItem("user");
+    const storedToken = localStorage.getItem("token");
+    const storedRefreshToken = localStorage.getItem("refreshToken");
 
-    if (user && token && refreshToken) {
-      setUser(JSON.parse(user));
-      setToken(token);
-      setRefreshToken(refreshToken);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    if (storedUser && storedToken && storedRefreshToken) {
+      setUser(JSON.parse(storedUser));
+      setToken(storedToken);
+      setRefreshToken(storedRefreshToken);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
     }
     setIsReady(true);
   }, []);
@@ -125,6 +125,11 @@ export const UserProvider = ({ children }: Props) => {
     await loginAPI(email, password)
       .then((res) => {
         if (res) {
+          console.log("Login successful, storing tokens:", {
+            accessToken: res.data.accessToken.substring(0, 20) + "...",
+            refreshToken: res.data.refreshToken.substring(0, 20) + "...",
+          });
+
           localStorage.setItem("token", res.data.accessToken);
           localStorage.setItem("refreshToken", res.data.refreshToken);
 
@@ -148,6 +153,7 @@ export const UserProvider = ({ children }: Props) => {
         }
       })
       .catch((e) => {
+        console.error("Login failed:", e);
         toast.error("Login failed!");
       });
   };
@@ -157,7 +163,9 @@ export const UserProvider = ({ children }: Props) => {
   };
 
   const logout = async () => {
-    // Revoke token trước khi clear
+    console.log("Logging out user");
+
+    // Revoke token before clearing
     if (refreshToken) {
       try {
         await revokeTokenAPI(refreshToken);
@@ -166,10 +174,8 @@ export const UserProvider = ({ children }: Props) => {
       }
     }
 
-    // Clear sau khi revoke
-    localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("user");
+    // Clear after revoking
+    localStorage.clear(); // Use clear() instead of individual removes
 
     // Clear axios default headers
     delete axios.defaults.headers.common["Authorization"];

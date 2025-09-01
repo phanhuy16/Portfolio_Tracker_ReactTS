@@ -99,7 +99,7 @@ const PricingSection = () => {
                 ))}
               </ul>
               <button
-                className={`w-full font-semibold py-4 rounded-xl transition-all duration-300 transform hover:scale-105 mt-auto ${
+                className={`w-full font-semibold py-4 rounded-full transition-all duration-300 transform hover:scale-105 mt-auto ${
                   plan.popular
                     ? "bg-gradient-to-r from-green-500 to-green-400 hover:from-green-400 hover:to-green-300 text-white shadow-lg hover:shadow-green-500/25"
                     : "bg-gray-800 hover:bg-gray-700 text-white border border-gray-600 hover:border-gray-500"

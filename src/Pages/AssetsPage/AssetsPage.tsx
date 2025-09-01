@@ -3,12 +3,6 @@ import { Button, Form, Typography } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { useState } from "react";
 
-// Components
-import PortfolioSummary from "./components/PortfolioSummary";
-import AssetsFilter from "./components/AssetsFilter";
-import AssetsTable from "./components/AssetsTable";
-import AddAssetModal from "./components/AddAssetModal";
-
 // Data and utilities
 import {
   Asset,
@@ -16,6 +10,10 @@ import {
   filterAssets,
   mockAssetsData,
 } from "../../data/assetsData";
+import PortfolioSummary from "../../Components/Assets/PortfolioSummary";
+import AssetsFilter from "../../Components/Assets/AssetsFilter";
+import AssetsTable from "../../Components/Assets/AssetsTable";
+import AddAssetModal from "../../Components/Assets/AddAssetModal";
 
 const { Title, Text } = Typography;
 

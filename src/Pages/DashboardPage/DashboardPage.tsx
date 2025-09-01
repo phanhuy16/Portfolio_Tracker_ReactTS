@@ -1,54 +1,23 @@
 import React, { useState } from "react";
+import { Col, Row } from "antd";
 import {
-  Card,
-  Col,
-  Row,
-  Statistic,
-  Typography,
-  Table,
-  Tag,
-  Progress,
-  Select,
-  Space,
-  Button,
-  Avatar,
-} from "antd";
-import {
-  ArrowDownOutlined,
-  ArrowUpOutlined,
-  DollarCircleOutlined,
-  PieChartOutlined,
-  RiseOutlined,
   WalletOutlined,
-  BankOutlined,
-  FundOutlined,
+  RiseOutlined,
   StockOutlined,
   CommentOutlined,
-  TrophyOutlined,
-  CalendarOutlined,
 } from "@ant-design/icons";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  BarChart,
-  Bar,
-} from "recharts";
-
-const { Title, Text } = Typography;
-const { Option } = Select;
+import { DashboardHeader } from "./Components/DashboardHeader";
+import { DashboardMetricCard } from "./Components/DashboardMetricCard";
+import { PerformanceLineChart } from "./Components/PerformanceLineChart";
+import { AllocationPieChart } from "./Components/AllocationPieChart";
+import { RecentTransactionsTable } from "./Components/RecentTransactionsTable";
+import { PerformanceLeaders } from "./Components/PerformanceLeaders";
+import { MarketMoverCard } from "./Components/MarketMoverCard";
 
 const DashboardPage = () => {
   const [performancePeriod, setPerformancePeriod] = useState(30);
 
-  // Mock data from DashboardController.GetDashboardOverview
+  // Mock data (same as before)
   const portfolioSummary = {
     totalStocks: 8,
     totalInvestment: 125000.0,
@@ -121,7 +90,6 @@ const DashboardPage = () => {
     memberSince: "January 2023",
   };
 
-  // Mock data from DashboardController.GetPortfolioAllocation
   const portfolioAllocation = [
     {
       industry: "Technology",
@@ -153,7 +121,6 @@ const DashboardPage = () => {
     },
   ];
 
-  // Mock data from DashboardController.GetPerformanceChart
   const performanceData = [
     { date: "Jan 01", value: 120000, transactionCount: 2 },
     { date: "Jan 05", value: 125000, transactionCount: 3 },
@@ -164,7 +131,6 @@ const DashboardPage = () => {
     { date: "Jan 30", value: 142750, transactionCount: 1 },
   ];
 
-  // Mock data from DashboardController.GetMarketMovers
   const marketMovers = {
     topMovers: [
       {
@@ -208,487 +174,121 @@ const DashboardPage = () => {
     ],
   };
 
-  const transactionColumns = [
-    {
-      title: "Asset",
-      key: "asset",
-      render: (record: any) => (
-        <div className="flex items-center space-x-2">
-          <Avatar size={24} className="bg-blue-500">
-            {record.symbol.charAt(0)}
-          </Avatar>
-          <span className="font-medium">{record.symbol}</span>
-        </div>
-      ),
-    },
-    {
-      title: "Type",
-      key: "type",
-      render: (record: any) => (
-        <Tag color={record.type === "Buy" ? "green" : "red"}>{record.type}</Tag>
-      ),
-    },
-    {
-      title: "Quantity",
-      dataIndex: "quantity",
-      key: "quantity",
-    },
-    {
-      title: "Price",
-      key: "price",
-      render: (record: any) => `$${record.price.toLocaleString()}`,
-    },
-    {
-      title: "Total",
-      key: "total",
-      render: (record: any) => (
-        <span className="font-semibold">
-          ${record.totalAmount.toLocaleString()}
-        </span>
-      ),
-    },
-  ];
-
-  const performerColumns = [
-    {
-      title: "Symbol",
-      dataIndex: "symbol",
-      key: "symbol",
-      render: (text: string) => (
-        <span className="font-bold text-blue-600">{text}</span>
-      ),
-    },
-    {
-      title: "P&L",
-      key: "pnl",
-      render: (record: any) => (
-        <div
-          className={`font-semibold ${
-            record.profitLoss >= 0 ? "text-green-600" : "text-red-600"
-          }`}
-        >
-          {record.profitLoss >= 0 ? "+" : ""}$
-          {Math.abs(record.profitLoss).toFixed(2)}
-        </div>
-      ),
-    },
-    {
-      title: "Return",
-      key: "return",
-      render: (record: any) => (
-        <div
-          className={`flex items-center space-x-1 ${
-            record.profitLossPercentage >= 0 ? "text-green-600" : "text-red-600"
-          }`}
-        >
-          {record.profitLossPercentage >= 0 ? (
-            <ArrowUpOutlined />
-          ) : (
-            <ArrowDownOutlined />
-          )}
-          <span className="font-medium">
-            {Math.abs(record.profitLossPercentage).toFixed(1)}%
-          </span>
-        </div>
-      ),
-    },
-  ];
-
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <Title level={2} className="!mb-2 text-gray-900">
-            Portfolio Dashboard
-          </Title>
-          <Text className="text-gray-600 text-lg">
-            Welcome back! Here's an overview of your investment portfolio
-          </Text>
-        </div>
+        <DashboardHeader />
 
         {/* Key Performance Metrics */}
         <Row gutter={[24, 24]} className="mb-8">
           <Col xs={24} sm={12} lg={6}>
-            <Card className="h-full border-0 shadow-md hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <WalletOutlined className="text-blue-600 text-xl" />
-                </div>
-                <Tag color="blue">Current</Tag>
-              </div>
-              <Statistic
-                title="Portfolio Value"
-                value={portfolioSummary.totalCurrentValue}
-                precision={2}
-                prefix="$"
-                valueStyle={{
-                  color: "#1f2937",
-                  fontSize: "24px",
-                  fontWeight: "bold",
-                }}
-              />
-              <Text className="text-gray-500">
-                Investment: ${portfolioSummary.totalInvestment.toLocaleString()}
-              </Text>
-            </Card>
+            <DashboardMetricCard
+              title="Portfolio Value"
+              value={portfolioSummary.totalCurrentValue}
+              precision={2}
+              prefix="$"
+              icon={<WalletOutlined className="text-blue-600 text-xl" />}
+              iconBgColor="bg-blue-100"
+              tagColor="blue"
+              tagText="Current"
+              subtitle={`Investment: $${portfolioSummary.totalInvestment.toLocaleString()}`}
+            />
           </Col>
 
           <Col xs={24} sm={12} lg={6}>
-            <Card className="h-full border-0 shadow-md hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <RiseOutlined className="text-green-600 text-xl" />
-                </div>
-                <Tag color="green">
-                  +{portfolioSummary.totalProfitLossPercentage.toFixed(1)}%
-                </Tag>
-              </div>
-              <Statistic
-                title="Total Profit/Loss"
-                value={portfolioSummary.totalProfitLoss}
-                precision={2}
-                prefix="$"
-                valueStyle={{
-                  color:
-                    portfolioSummary.totalProfitLoss >= 0
-                      ? "#059669"
-                      : "#dc2626",
-                  fontSize: "24px",
-                  fontWeight: "bold",
-                }}
-              />
-              <Text className="text-gray-500">
-                Return: {portfolioSummary.totalProfitLossPercentage.toFixed(2)}%
-              </Text>
-            </Card>
+            <DashboardMetricCard
+              title="Total Profit/Loss"
+              value={portfolioSummary.totalProfitLoss}
+              precision={2}
+              prefix="$"
+              icon={<RiseOutlined className="text-green-600 text-xl" />}
+              iconBgColor="bg-green-100"
+              tagColor="green"
+              tagText={`+${portfolioSummary.totalProfitLossPercentage.toFixed(
+                1
+              )}%`}
+              subtitle={`Return: ${portfolioSummary.totalProfitLossPercentage.toFixed(
+                2
+              )}%`}
+              valueColor={
+                portfolioSummary.totalProfitLoss >= 0 ? "#059669" : "#dc2626"
+              }
+            />
           </Col>
 
           <Col xs={24} sm={12} lg={6}>
-            <Card className="h-full border-0 shadow-md hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <StockOutlined className="text-purple-600 text-xl" />
-                </div>
-                <Tag color="purple">Assets</Tag>
-              </div>
-              <Statistic
-                title="Total Stocks"
-                value={userStats.totalStocks}
-                valueStyle={{
-                  color: "#1f2937",
-                  fontSize: "24px",
-                  fontWeight: "bold",
-                }}
-              />
-              <Text className="text-gray-500">
-                Transactions: {userStats.totalTransactions}
-              </Text>
-            </Card>
+            <DashboardMetricCard
+              title="Total Stocks"
+              value={userStats.totalStocks}
+              icon={<StockOutlined className="text-purple-600 text-xl" />}
+              iconBgColor="bg-purple-100"
+              tagColor="purple"
+              tagText="Assets"
+              subtitle={`Transactions: ${userStats.totalTransactions}`}
+            />
           </Col>
 
           <Col xs={24} sm={12} lg={6}>
-            <Card className="h-full border-0 shadow-md hover:shadow-lg transition-shadow">
-              <div className="flex items-center justify-between mb-4">
-                <div className="p-3 bg-yellow-100 rounded-lg">
-                  <CommentOutlined className="text-yellow-600 text-xl" />
-                </div>
-                <Tag color="gold">Activity</Tag>
-              </div>
-              <Statistic
-                title="Comments"
-                value={userStats.totalComments}
-                valueStyle={{
-                  color: "#1f2937",
-                  fontSize: "24px",
-                  fontWeight: "bold",
-                }}
-              />
-              <Text className="text-gray-500">
-                Member since: {userStats.memberSince}
-              </Text>
-            </Card>
+            <DashboardMetricCard
+              title="Comments"
+              value={userStats.totalComments}
+              icon={<CommentOutlined className="text-yellow-600 text-xl" />}
+              iconBgColor="bg-yellow-100"
+              tagColor="gold"
+              tagText="Activity"
+              subtitle={`Member since: ${userStats.memberSince}`}
+            />
           </Col>
         </Row>
 
         {/* Charts Row */}
         <Row gutter={[24, 24]} className="mb-8">
           <Col xs={24} lg={16}>
-            <Card
-              title={
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-semibold text-gray-900">
-                    Portfolio Performance
-                  </span>
-                  <Select
-                    value={performancePeriod}
-                    onChange={setPerformancePeriod}
-                    size="small"
-                  >
-                    <Option value={7}>7 Days</Option>
-                    <Option value={30}>30 Days</Option>
-                    <Option value={90}>3 Months</Option>
-                    <Option value={365}>1 Year</Option>
-                  </Select>
-                </div>
-              }
-              className="h-full border-0 shadow-md"
-            >
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={performanceData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                  <XAxis dataKey="date" stroke="#6B7280" />
-                  <YAxis stroke="#6B7280" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#F9FAFB",
-                      border: "1px solid #E5E7EB",
-                      borderRadius: "8px",
-                    }}
-                    formatter={(value, name) => [
-                      `${value.toLocaleString()}`,
-                      "Portfolio Value",
-                    ]}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#3B82F6"
-                    strokeWidth={3}
-                    dot={{ r: 4 }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </Card>
+            <PerformanceLineChart
+              data={performanceData}
+              performancePeriod={performancePeriod}
+              onPerformancePeriodChange={setPerformancePeriod}
+            />
           </Col>
 
           <Col xs={24} lg={8}>
-            <Card
-              title="Portfolio Allocation"
-              className="h-full border-0 shadow-md"
-            >
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={portfolioAllocation}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    innerRadius={40}
-                    paddingAngle={2}
-                    dataKey="percentage"
-                  >
-                    {portfolioAllocation.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: number) => [
-                      `${value.toFixed(1)}%`,
-                      "Allocation",
-                    ]}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="mt-4 space-y-2">
-                {portfolioAllocation.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between text-sm"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: item.color }}
-                      />
-                      <span className="text-gray-700">{item.industry}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="font-medium">{item.percentage}%</span>
-                      <div className="text-xs text-gray-500">
-                        {item.stockCount} stocks
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+            <AllocationPieChart data={portfolioAllocation} />
           </Col>
         </Row>
 
         {/* Recent Activity and Performance */}
         <Row gutter={[24, 24]} className="mb-8">
           <Col xs={24} lg={12}>
-            <Card
-              title={
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-semibold text-gray-900">
-                    Recent Transactions
-                  </span>
-                  <Button type="link" size="small">
-                    View All
-                  </Button>
-                </div>
-              }
-              className="h-full border-0 shadow-md"
-            >
-              <Table
-                columns={transactionColumns}
-                dataSource={recentTransactions.slice(0, 5)}
-                pagination={false}
-                size="small"
-                className="recent-transactions-table"
-              />
-            </Card>
+            <RecentTransactionsTable transactions={recentTransactions} />
           </Col>
 
           <Col xs={24} lg={12}>
-            <Card
-              title="Performance Leaders"
-              className="h-full border-0 shadow-md"
-            >
-              <div className="mb-4">
-                <div className="flex items-center space-x-2 mb-3">
-                  <TrophyOutlined className="text-green-600" />
-                  <Text className="font-medium text-green-600">
-                    Top Performers
-                  </Text>
-                </div>
-                <Table
-                  columns={performerColumns}
-                  dataSource={portfolioSummary.topPerformers}
-                  pagination={false}
-                  size="small"
-                  showHeader={false}
-                />
-              </div>
-
-              {portfolioSummary.worstPerformers.length > 0 && (
-                <div>
-                  <div className="flex items-center space-x-2 mb-3">
-                    <ArrowDownOutlined className="text-red-600" />
-                    <Text className="font-medium text-red-600">
-                      Needs Attention
-                    </Text>
-                  </div>
-                  <Table
-                    columns={performerColumns}
-                    dataSource={portfolioSummary.worstPerformers}
-                    pagination={false}
-                    size="small"
-                    showHeader={false}
-                  />
-                </div>
-              )}
-            </Card>
+            <PerformanceLeaders
+              topPerformers={portfolioSummary.topPerformers}
+              worstPerformers={portfolioSummary.worstPerformers}
+            />
           </Col>
         </Row>
 
         {/* Market Movers */}
         <Row gutter={[24, 24]}>
           <Col xs={24} lg={12}>
-            <Card
-              title={
-                <div className="flex items-center space-x-2">
-                  <ArrowUpOutlined className="text-green-600" />
-                  <span className="text-lg font-semibold text-gray-900">
-                    Your Top Movers (Today)
-                  </span>
-                </div>
-              }
-              className="border-0 shadow-md"
-            >
-              <div className="space-y-4">
-                {marketMovers.topMovers.map((stock, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 bg-green-50 rounded-lg"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="bg-green-100 text-green-600">
-                        {stock.symbol.charAt(0)}
-                      </Avatar>
-                      <div>
-                        <div className="font-semibold text-gray-900">
-                          {stock.symbol}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {stock.companyName}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-gray-900">
-                        ${stock.currentPrice.toFixed(2)}
-                      </div>
-                      <div className="text-green-600 font-medium">
-                        +{stock.changePercentage.toFixed(2)}%
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+            <MarketMoverCard
+              title="Your Top Movers (Today)"
+              stocks={marketMovers.topMovers}
+              isPositive={true}
+            />
           </Col>
 
           <Col xs={24} lg={12}>
-            <Card
-              title={
-                <div className="flex items-center space-x-2">
-                  <ArrowDownOutlined className="text-red-600" />
-                  <span className="text-lg font-semibold text-gray-900">
-                    Your Declining Holdings
-                  </span>
-                </div>
-              }
-              className="border-0 shadow-md"
-            >
-              <div className="space-y-4">
-                {marketMovers.topLosers.map((stock, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-4 bg-red-50 rounded-lg"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="bg-red-100 text-red-600">
-                        {stock.symbol.charAt(0)}
-                      </Avatar>
-                      <div>
-                        <div className="font-semibold text-gray-900">
-                          {stock.symbol}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {stock.companyName}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-gray-900">
-                        ${stock.currentPrice.toFixed(2)}
-                      </div>
-                      <div className="text-red-600 font-medium">
-                        {stock.changePercentage.toFixed(2)}%
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
+            <MarketMoverCard
+              title="Your Declining Holdings"
+              stocks={marketMovers.topLosers}
+              isPositive={false}
+            />
           </Col>
         </Row>
       </div>
-
-      <style>{`
-        .recent-transactions-table .ant-table-tbody > tr:hover > td {
-          background-color: #f9fafb !important;
-        }
-        .recent-transactions-table .ant-table-thead > tr > th {
-          background-color: #f8fafc;
-          font-weight: 600;
-          color: #374151;
-        }
-      `}</style>
     </div>
   );
 };

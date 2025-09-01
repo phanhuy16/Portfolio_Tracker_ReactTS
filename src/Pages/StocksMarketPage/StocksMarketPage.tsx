@@ -1,17 +1,17 @@
 // StocksMarketPage.tsx - Final Version
 import { Col, message, Row } from "antd";
 import { useState } from "react";
+import { BatchOperations } from "../../Components/Stocks/BatchOperations";
+import { HeaderSection } from "../../Components/Stocks/HeaderSection";
+import { MarketSummaryCard } from "../../Components/Stocks/MarketSummaryCard";
+import { QuickTradeModal } from "../../Components/Stocks/QuickTradeModal";
+import { SearchAndFilters } from "../../Components/Stocks/SearchAndFilters";
+import { StockPriceChart } from "../../Components/Stocks/StockPriceChart";
+import { StocksTable } from "../../Components/Stocks/StocksTable";
+import { TopMoversTable } from "../../Components/Stocks/TopMoversTable";
 import { Stock } from "../../Models/Stock";
 import { StockService } from "../../Services/StockService";
 import { useStocks } from "../../hooks/useStocks";
-import { BatchOperations } from "./components/BatchOperations";
-import { HeaderSection } from "./components/HeaderSection";
-import { MarketSummaryCard } from "./components/MarketSummaryCard";
-import { QuickTradeModal } from "./components/QuickTradeModal";
-import { SearchAndFilters } from "./components/SearchAndFilters";
-import { StockPriceChart } from "./components/StockPriceChart";
-import { StocksTable } from "./components/StocksTable";
-import { TopMoversTable } from "./components/TopMoversTable";
 
 interface HistoricalPrice {
   date: string;

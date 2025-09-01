@@ -1,6 +1,6 @@
 // components/AssetsTable.tsx
 import { Card, Table } from "antd";
-import { assetsTableColumns } from "../../../utils/assetsTableColumns";
+import { assetsTableColumns } from "../../utils/assetsTableColumns";
 
 interface AssetsTableProps {
   data: any[];

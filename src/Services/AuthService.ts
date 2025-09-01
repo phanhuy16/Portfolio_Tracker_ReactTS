@@ -43,9 +43,13 @@ axios.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
+    // Check if it's a 401 error and not already retried
     if (error.response?.status === 401 && !originalRequest._retry) {
+      console.log("401 Error detected, attempting token refresh...");
+
       if (isRefreshing) {
-        return new Promise(function (resolve, reject) {
+        // If already refreshing, queue this request
+        return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
@@ -62,58 +66,76 @@ axios.interceptors.response.use(
 
       const refreshToken = localStorage.getItem("refreshToken");
       if (!refreshToken) {
-        // Redirect to login if no refresh token
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
+        console.log("No refresh token found, redirecting to login");
+        // Clear everything and redirect to login
+        localStorage.clear();
         window.location.href = "/login";
+        processQueue(error, null);
+        isRefreshing = false;
         return Promise.reject(error);
       }
 
       try {
+        console.log("Attempting to refresh token with:", refreshToken);
+
+        // Create a new axios instance without interceptors to avoid infinite loop
         const refreshAxios = axios.create();
         const response = await refreshAxios.post<UserProfileToken>(
-          api + "/account/refresh-token", { refreshToken }
+          api + "/account/refresh-token",
+          { refreshToken: refreshToken }  // Make sure key matches backend
         );
+
+        console.log("Token refresh successful:", response.data);
 
         const { accessToken: newToken, refreshToken: newRefreshToken } = response.data;
 
-
-        // Cập nhật tokens
+        // Update tokens in localStorage
         localStorage.setItem("token", newToken);
         localStorage.setItem("refreshToken", newRefreshToken);
 
-        // Cập nhật user info nếu có
-        const userData = {
-          username: response.data.username,
-          email: response.data.email,
-        };
-        localStorage.setItem("user", JSON.stringify(userData));
+        // Update user info if available
+        if (response.data.username && response.data.email) {
+          const userData = {
+            username: response.data.username,
+            email: response.data.email,
+          };
+          localStorage.setItem("user", JSON.stringify(userData));
+        }
 
-        // Cập nhật default header
+        // Update axios default header
         axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
 
-        // Xử lý các request đang chờ
+        // Update UserContext if available
+        if ((window as any).updateUserTokens) {
+          const userData = response.data.username && response.data.email ? {
+            username: response.data.username,
+            email: response.data.email,
+          } : undefined;
+          (window as any).updateUserTokens(newToken, newRefreshToken, userData);
+        }
+
+        // Process queued requests
         processQueue(null, newToken);
 
-        // Retry original request với token mới
+        // Retry original request with new token
         originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
         return axios(originalRequest);
-      } catch (error) {
-        console.error("Token refresh failed:", error);
-        processQueue(error, null);
 
-        // Refresh failed, redirect to login
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
+      } catch (refreshError) {
+        console.error("Token refresh failed:", refreshError);
+        processQueue(refreshError, null);
 
-        // Clear axios default headers
+        // Refresh failed, clear everything and redirect to login
+        localStorage.clear();
         delete axios.defaults.headers.common["Authorization"];
 
-        window.location.href = "/login";
+        // Update UserContext to clear state
+        if ((window as any).updateUserTokens) {
+          (window as any).updateUserTokens("", "", null);
+        }
 
-        return Promise.reject(error);
+        window.location.href = "/login";
+        return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
       }
@@ -158,7 +180,9 @@ export const registerAPI = async (
 export const refreshTokenAPI = async (refreshToken: string) => {
   try {
     const refreshAxios = axios.create();
-    const data = await refreshAxios.post<UserProfileToken>(api + "/account/refresh-token", { refreshToken });
+    const data = await refreshAxios.post<UserProfileToken>(api + "/account/refresh-token", {
+      refreshToken: refreshToken
+    });
     return data;
   } catch (error) {
     handleError(error);
@@ -168,7 +192,9 @@ export const refreshTokenAPI = async (refreshToken: string) => {
 
 export const revokeTokenAPI = async (token: string) => {
   try {
-    const data = await axios.post(api + "/account/revoke-token", { token });
+    const data = await axios.post(api + "/account/revoke-token", {
+      refreshToken: token  // Changed from 'token' to 'refreshToken' to match backend
+    });
     return data;
   } catch (error) {
     handleError(error);
