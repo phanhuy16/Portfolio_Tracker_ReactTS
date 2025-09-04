@@ -92,3 +92,40 @@ export interface RealtimePrice {
   price: number;
   timestamp: string;
 }
+
+export interface UseStocksOptions {
+  initialPageSize?: number;
+  autoRefresh?: boolean;
+  refreshInterval?: number;
+}
+
+export interface UseStocksReturn {
+  // Data
+  stocks: Stock[];
+  topGainers: any[];
+  topLosers: any[];
+  marketSummary: MarketSummary;
+  industries: string[];
+
+  // Loading states
+  stocksLoading: boolean;
+  marketDataLoading: boolean;
+
+  // Filters
+  searchTerm: string;
+  selectedIndustry: string;
+  sortBy: string;
+
+  // Actions
+  setSearchTerm: (term: string) => void;
+  setSelectedIndustry: (industry: string) => void;
+  setSortBy: (sort: string) => void;
+  refreshStocks: () => Promise<void>;
+  refreshMarketData: () => Promise<void>;
+  refreshAll: () => Promise<void>;
+
+  // Selection
+  selectedStockIds: number[];
+  setSelectedStockIds: (ids: number[]) => void;
+  selectedSymbols: string[];
+}

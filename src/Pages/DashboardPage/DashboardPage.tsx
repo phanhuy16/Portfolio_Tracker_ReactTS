@@ -6,13 +6,13 @@ import {
   StockOutlined,
   CommentOutlined,
 } from "@ant-design/icons";
-import { DashboardHeader } from "./Components/DashboardHeader";
-import { DashboardMetricCard } from "./Components/DashboardMetricCard";
-import { PerformanceLineChart } from "./Components/PerformanceLineChart";
-import { AllocationPieChart } from "./Components/AllocationPieChart";
-import { RecentTransactionsTable } from "./Components/RecentTransactionsTable";
-import { PerformanceLeaders } from "./Components/PerformanceLeaders";
-import { MarketMoverCard } from "./Components/MarketMoverCard";
+import { DashboardHeader } from "../../Components/Dashbroad/DashboardHeader";
+import { DashboardMetricCard } from "../../Components/Dashbroad/DashboardMetricCard";
+import { PerformanceLineChart } from "../../Components/Dashbroad/PerformanceLineChart";
+import { RecentTransactionsTable } from "../../Components/Dashbroad/RecentTransactionsTable";
+import { PerformanceLeaders } from "../../Components/Dashbroad/PerformanceLeaders";
+import { MarketMoverCard } from "../../Components/Dashbroad/MarketMoverCard";
+import { AllocationPieChart } from "../../Components/Dashbroad/AllocationPieChart";
 
 const DashboardPage = () => {
   const [performancePeriod, setPerformancePeriod] = useState(30);

@@ -2,53 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { message } from 'antd';
 import { StockService } from '../Services/StockService';
-import { Stock } from '../Models/Stock';
-
-interface UseStocksOptions {
-  initialPageSize?: number;
-  autoRefresh?: boolean;
-  refreshInterval?: number;
-}
-
-interface UseStocksReturn {
-  // Data
-  stocks: Stock[];
-  topGainers: any[];
-  topLosers: any[];
-  marketSummary: MarketSummary;
-  industries: string[];
-
-  // Loading states
-  stocksLoading: boolean;
-  marketDataLoading: boolean;
-
-  // Filters
-  searchTerm: string;
-  selectedIndustry: string;
-  sortBy: string;
-
-  // Actions
-  setSearchTerm: (term: string) => void;
-  setSelectedIndustry: (industry: string) => void;
-  setSortBy: (sort: string) => void;
-  refreshStocks: () => Promise<void>;
-  refreshMarketData: () => Promise<void>;
-  refreshAll: () => Promise<void>;
-
-  // Selection
-  selectedStockIds: number[];
-  setSelectedStockIds: (ids: number[]) => void;
-  selectedSymbols: string[];
-}
-
-interface MarketSummary {
-  totalStocks: number;
-  gainers: number;
-  losers: number;
-  unchanged: number;
-  totalVolume: string;
-  marketCap: string;
-}
+import { MarketSummary, Stock, UseStocksOptions, UseStocksReturn } from '../Models/Stock';
 
 export const useStocks = (options: UseStocksOptions = {}): UseStocksReturn => {
   const {

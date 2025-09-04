@@ -6,13 +6,13 @@ import {
 } from "@ant-design/icons";
 import { Col, Row } from "antd";
 import { useState } from "react";
-import { AnalyticsHeader } from "./components/AnalyticsHeader";
-import { MetricCard } from "./components/MetricCard";
-import { PerformanceChart } from "./components/PerformanceChart";
-import { AllocationPieChart } from "./components/AllocationPieChart";
-import { MonthlyReturnsChart } from "./components/MonthlyReturnsChart";
-import { RiskMetricsDashboard } from "./components/RiskMetricsDashboard";
-import { SectorPerformanceTable } from "./components/SectorPerformanceTable";
+import { AnalyticsHeader } from "../../Components/Analytics/AnalyticsHeader";
+import { MetricCard } from "../../Components/Analytics/MetricCard";
+import { PerformanceChart } from "../../Components/Analytics/PerformanceChart";
+import { AllocationPieChart } from "../../Components/Analytics/AllocationPieChart";
+import { MonthlyReturnsChart } from "../../Components/Analytics/MonthlyReturnsChart";
+import { SectorPerformanceTable } from "../../Components/Analytics/SectorPerformanceTable";
+import { RiskMetricsDashboard } from "../../Components/Analytics/RiskMetricsDashboard";
 
 const AnalyticsPage = () => {
   const [timeRange, setTimeRange] = useState("6M");
